@@ -1,0 +1,40 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.proyecto_integrador" // Especificar el namespace
+    compileSdk = 34 // Cambiar a 34 para compatibilidad con plugins recientes
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId "com.example.proyecto_integrador" // ID de la aplicación, coincide con el namespace
+        minSdkVersion 21 // Versión mínima soportada
+        targetSdkVersion 34 // Igualar al compileSdk para mejores resultados
+        versionCode flutter.versionCode // Versión del código de la app
+        versionName flutter.versionName // Versión visible de la app
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8 // Compatibilidad con Java 8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8" // Configuración para Kotlin
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false // No habilitar la minimización ni el shrinking
+            shrinkResources false // Deshabilitar el recurso shrinking
+            signingConfig signingConfigs.debug // Utiliza la configuración de firma para debug
+        }
+    }
+}
+
+flutter {
+    source = "../.." // Ruta de origen del proyecto Flutter
+}

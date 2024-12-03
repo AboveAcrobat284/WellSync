@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        google()  // Repositorio de Google
+        mavenCentral()  // Repositorio de Maven Central
+    }
+    dependencies {
+        // Usa una versión más estable como la 7.4.2
+        classpath 'com.android.tools.build:gradle:7.4.2'  // Actualiza esta línea
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10'  // O la versión que prefieras para Kotlin
+    }
+}
+
+allprojects {
+    repositories {
+        google()  // Repositorio de Google
+        mavenCentral()  // Repositorio de Maven Central
+    }
+}
+
+rootProject.buildDir = "../build"  // Define el directorio de construcción global
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"  // Cada subproyecto utiliza el directorio común
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")  // Asegúrate de que la evaluación del proyecto app se haga primero
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir  // Tarea para limpiar el directorio de construcción
+}
