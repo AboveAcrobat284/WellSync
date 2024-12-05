@@ -12,7 +12,7 @@ import 'graphics_screen.dart';
 import 'home_screen.dart';
 import 'my_profile_screen.dart';
 
-const String apiKey = "AIzaSyAoudGpp--Mr5C_0nTpyuWU7lk9Lx_iGxU"; // Reemplaza con tu clave válida
+const String apiKey = "AIzaSyAoudGpp--Mr5C_0nTpyuWU7lk9Lx_iGxU";
 
 class ChatScreen extends StatefulWidget {
   final String userUuid;
@@ -32,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isListening = false;
   bool _isConnected = true;
   String _speechText = '';
-  final String _selectedLanguage = "es-MX"; // Idioma configurado en español
+  final String _selectedLanguage = "es-MX";
   final List<ChatMessage> _messages = [];
   final TextEditingController _controller = TextEditingController();
 
@@ -118,51 +118,74 @@ class _ChatScreenState extends State<ChatScreen> {
     _speech.stop();
   }
 
-  Future<void> _sendMessage() async {
-    await _checkInternetConnection();
+Future<void> _sendMessage() async {
+  await _checkInternetConnection();
 
-    if (!_isConnected) {
+  if (!_isConnected) {
+    setState(() {
+      _messages.add(ChatMessage(
+          text: "No se puede enviar el mensaje. Conéctate a Internet.", isUser: false));
+    });
+    return;
+  }
+
+  if (_controller.text.isNotEmpty) {
+    String userMessage = _controller.text;
+    _controller.clear();
+
+    setState(() {
+      _messages.add(ChatMessage(text: "Corrigiendo y analizando...", isUser: false));
+    });
+
+    try {
+      // 1. Corregir el mensaje y filtrar groserías
+      final correctedMessage = await _correctAndFilterMessage(userMessage);
+
+      // Actualizar la burbuja azul con el mensaje corregido
       setState(() {
-        _messages.add(ChatMessage(
-            text: "No se puede enviar el mensaje. Conéctate a Internet.", isUser: false));
+        _messages.removeLast(); // Eliminar "Corrigiendo y analizando..."
+        _messages.add(ChatMessage(text: correctedMessage, isUser: true)); // Solo el mensaje corregido
       });
-      return;
-    }
 
-    if (_controller.text.isNotEmpty) {
+      // 2. Obtener la respuesta del bot usando el mensaje corregido
+      final response = await _chatSession.sendMessage(
+        Content.text(correctedMessage), // Usar mensaje corregido
+      );
+      final botResponse = response.text ?? "No se recibió respuesta.";
+
+      // Mostrar la respuesta del bot en un globo verde
       setState(() {
-        _messages.add(ChatMessage(text: _controller.text, isUser: true));
+        _messages.add(ChatMessage(text: botResponse, isUser: false));
       });
-      String userMessage = _controller.text;
-      _controller.clear();
 
+    } catch (e) {
       setState(() {
-        _messages.add(ChatMessage(text: "Analizando...", isUser: false));
+        _messages.removeLast(); // Eliminar "Corrigiendo y analizando..."
+        _messages.add(ChatMessage(text: "Error: $e", isUser: false));
       });
-
-      try {
-        String context = _getContext();
-
-        final response = await _chatSession.sendMessage(
-          Content.text("$context\nUsuario: $userMessage"),
-        );
-        final botResponse = response.text ?? "No se recibió respuesta";
-
-        setState(() {
-          _messages.removeLast();
-          _messages.add(ChatMessage(text: botResponse, isUser: false));
-        });
-
-        await _saveMessages();
-        await _speak(botResponse); // Hablar solo las respuestas del bot
-      } catch (e) {
-        setState(() {
-          _messages.removeLast();
-          _messages.add(ChatMessage(text: "Error: $e", isUser: false));
-        });
-      }
     }
   }
+}
+
+
+
+// Método para corregir y filtrar mensaje con Gemini Pro
+Future<String> _correctAndFilterMessage(String message) async {
+  try {
+    // Usamos el modelo `GenerativeModel` para enviar el prompt de corrección
+    final response = await _chatSession.sendMessage(
+      Content.text(
+        "Arregla los errores de ortografía de este mensaje y marca las palabras obscenas con asteriscos: $message",
+      ),
+    );
+
+    // Devolver la respuesta corregida
+    return response.text ?? message;
+  } catch (e) {
+    print('Error al corregir el mensaje: $e');
+    return message; // Devuelve el mensaje original en caso de error
+  }
+}
 
   String _getContext() {
     int numberOfMessages = _messages.length < 10 ? _messages.length : 10;
@@ -288,7 +311,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-        bottomNavigationBar: _BottomNavigationBarWithAnimation(
+      bottomNavigationBar: _BottomNavigationBarWithAnimation(
         selectedIndex: 1,
         userUuid: widget.userUuid,
         leadUuid: widget.leadUuid,

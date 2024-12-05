@@ -65,14 +65,14 @@ class _StepsGraphicScreenState extends State<StepsGraphicScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Aquí observarás los pasos transcurridos durante el día",
+              "Aquí observarás los pasos transcurridos durante el día y tu gráfica con las predicciones de la proxima semana, la linea verde son los pasos que caminaste en el transcurso de la semana, la linea azul es la predccion para tu proxima semana y la sombra azul es nuestro intervalo de confianza",
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 14.5,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 5),
             Text(
               "Pasos",
               style: TextStyle(
@@ -91,7 +91,7 @@ class _StepsGraphicScreenState extends State<StepsGraphicScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 0),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

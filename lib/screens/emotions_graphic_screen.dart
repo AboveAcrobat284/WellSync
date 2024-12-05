@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import 'chat_screen.dart';
 import 'community_screen.dart';
 import 'emotions_graphic_statistics_screen.dart';
 import 'graphics_screen.dart';
-import 'my_profile_screen.dart';
+import 'my_profile_screen.dart';  // Para manejar la codificación JSON
 
 class EmotionsGraphicScreen extends StatelessWidget {
   final String userUuid;
@@ -17,8 +19,7 @@ class EmotionsGraphicScreen extends StatelessWidget {
     required this.leadUuid,
   });
 
-  // Verificar si el usuario ya registró una emoción hoy
-  // Verificar si el usuario puede registrar una emoción (solo cada minuto)
+// Verificar si el usuario ya registró una emoción hoy
   Future<bool> _canRecordEmotion() async {
     final prefs = await SharedPreferences.getInstance();
     String? lastRecordedDate = prefs.getString('lastRecordedDate');
@@ -40,13 +41,54 @@ class EmotionsGraphicScreen extends StatelessWidget {
     }
   }
 
-
   // Guardar la fecha y hora de la emoción registrada
   Future<void> _saveRecordedDate() async {
       final prefs = await SharedPreferences.getInstance();
       DateTime now = DateTime.now();
       prefs.setString('lastRecordedDate', now.toIso8601String());
   }
+
+// Función para enviar la emoción a la API
+Future<void> _sendEmotionToApi(String emotion) async {
+  final prefs = await SharedPreferences.getInstance();
+  String? userUuid = prefs.getString('userUuid');  // Obtener el userUuid almacenado
+
+  if (userUuid == null) {
+    print("No se encontró el UUID del usuario.");
+    return;
+  }
+
+  // Datos que vamos a enviar
+  final Map<String, dynamic> data = {
+    'useruuid': userUuid,
+    'emocion': emotion.toLowerCase(), // Aseguramos que la emoción esté en minúsculas
+  };
+
+  // Imprimir los datos antes de enviar
+  print("Enviando datos a la API: ${jsonEncode(data)}");
+
+  // Enviar la emoción en minúsculas y el userUuid a la API
+  try {
+    final response = await http.post(
+      Uri.parse('https://0dqw4sfw-5000.usw3.devtunnels.ms/api/emociones'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      // Imprimir la respuesta en consola
+      print("Respuesta de la API: ${response.body}");
+    } else {
+      print("Error en la API: ${response.statusCode}");
+      print("Cuerpo de la respuesta: ${response.body}");
+    }
+  } catch (e) {
+    print("Error al enviar la emoción: $e");
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +182,8 @@ class EmotionsGraphicScreen extends StatelessWidget {
                       } else {
                         // Guardar la fecha del registro y realizar la acción
                         await _saveRecordedDate();
-                        // Aquí puedes agregar la acción de registrar la emoción, por ejemplo, almacenar la emoción seleccionada.
+                        // Enviar la emoción seleccionada a la API
+                        await _sendEmotionToApi(emotionsText[index]);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -212,6 +255,7 @@ class EmotionsGraphicScreen extends StatelessWidget {
     );
   }
 }
+
 
 // Barra de navegación inferior con animación
 class _BottomNavigationBarWithAnimation extends StatefulWidget {

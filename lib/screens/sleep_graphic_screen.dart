@@ -214,7 +214,7 @@ class _SleepGraphicScreenState extends State<SleepGraphicScreen> {
               ),
               const SizedBox(height: 15),
               const Text(
-                "Este diagnostico está realizado con el fin de observar el tiempo que duermes semanalmente.",
+                "Este diagnostico está realizado con el fin de observar el tiempo que duermes semanalmente, en tu gráfica podras observar en la linea verde las horas que dormiste en el transcurso de la semana, la linea azul son las predicciones de la proxima semana y la sombra azul es nuestro intervalo de confianza.",
                 style: TextStyle(
                   fontSize: 15,
                   color: Color.fromRGBO(145, 143, 167, 1),
